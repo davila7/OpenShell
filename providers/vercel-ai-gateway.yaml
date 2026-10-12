@@ -1,0 +1,46 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+# Example provider profile. OpenShell does not load it; import it explicitly:
+#   openshell provider profile lint   -f providers/vercel-ai-gateway.yaml
+#   openshell provider profile import -f providers/vercel-ai-gateway.yaml --global
+#
+# Copy and edit this file rather than importing it unchanged. `binaries` is the
+# least-privilege control that decides which processes may reach the endpoints
+# below, so it has to name the paths in *your* image.
+#
+# Client binaries:   fx (github.com/vercel-labs/fx).
+# Reference layout:  fx at /usr/local/bin/fx. The fx installer puts it in
+#                    ~/.local/bin instead; add that path for your image's user
+#                    if you install it that way. Add curl or an SDK interpreter
+#                    if the workload calls the API another way.
+# Credential scope:  AI_GATEWAY_API_KEY, sent as a bearer token to
+#                    ai-gateway.vercel.sh and nowhere else.
+# Endpoint access:   ai-gateway.vercel.sh, read-write, L7 enforced. Vercel
+#                    sign-in, update checks, and MCP servers fx can connect to
+#                    are not covered.
+# Smoke test:        openshell sandbox create --provider <name> \
+#                      --from <image-with-fx> -- \
+#                      fx ask 'reply with OK'
+
+id: vercel-ai-gateway
+display_name: Vercel AI Gateway
+description: Vercel AI Gateway inference API
+category: inference
+inference_capable: true
+credentials:
+  - name: api_key
+    description: Vercel AI Gateway API key
+    env_vars: [AI_GATEWAY_API_KEY]
+    required: true
+    auth_style: bearer
+    header_name: authorization
+discovery:
+  credentials: [api_key]
+endpoints:
+  - host: ai-gateway.vercel.sh
+    port: 443
+    protocol: rest
+    access: read-write
+    enforcement: enforce
+binaries: [/usr/local/bin/fx]
